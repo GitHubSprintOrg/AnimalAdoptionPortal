@@ -7,8 +7,8 @@ on:
     branches: [ "master" ]
 
 
-env:
-  ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: http://localhost:9000
+# env:
+#   ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: http://localhost:9000
 
 
 jobs:
@@ -27,15 +27,11 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
 
-    - name: Install Chrome
-      uses: browser-actions/setup-chrome@latest
+    # - name: Install Chrome
+    #   uses: browser-actions/setup-chrome@latest
     
-    - name: Install Chrome Webdriver
-      uses: nanasess/setup-chromedriver@v1
-    # - run: |
-    #     export DISPLAY=:99
-    #     chromedriver --url-base=/wd/hub &
-    #     sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
+    # - name: Install Chrome Webdriver
+    #   uses: nanasess/setup-chromedriver@v1
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
