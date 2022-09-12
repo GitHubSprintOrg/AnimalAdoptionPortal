@@ -25,7 +25,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --configuration Release --no-restore
 
     # - name: Install Chrome
     #   uses: browser-actions/setup-chrome@latest
@@ -35,6 +35,14 @@ jobs:
 
     # - name: Test
     #   run: dotnet test --no-build --verbosity normal
+
+    - name: List out directory contents
+      run: |
+        echo "Listing the contents of the GitHub workspace directory"
+        ls ${{ github.workspace }}
+
+        echo "Recursively listing all contents of the current directory"
+        ls -R
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.1.3
