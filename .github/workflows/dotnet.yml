@@ -31,6 +31,8 @@ jobs:
     #     export DISPLAY=:99
     #     chromedriver --url-base=/wd/hub &
     #     sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
+    - name: Set env variable
+      run: export ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH = http://localhost:9000
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
