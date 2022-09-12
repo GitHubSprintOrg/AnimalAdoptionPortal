@@ -48,9 +48,10 @@ jobs:
       uses: actions/upload-artifact@v2.1.3
       with:
         name: drop
-        path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/
+        path: ${{ github.workspace }}/AnimalAdoption.Web.Portal/bin/Release/netcoreapp3.1/
         if-no-files-found: error
 
     - name: Unit Tests
+      run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --verbosity normal --configuration Release
       # run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --no-build --verbosity normal --configuration Release
-      run: dotnet test
+      # run: dotnet test
