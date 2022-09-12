@@ -1,21 +1,26 @@
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System;
+using Xunit;
 
 namespace AnimalAdoption.Web.Portal.FunctionalTests
 {
     [TestClass]
     public class ChromeDriverTest
     {
+        
+
         // In order to run the below test(s), 
         // please follow the instructions from https://chromedriver.chromium.org/downloads
         // to install Chrome WebDriver.
 
         private ChromeDriver _driver;
 
+        [Fact(Skip = "Chrome driver missing")]
         [TestInitialize]
         public void ChromeDriverInitialize()
         {
