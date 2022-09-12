@@ -20,7 +20,7 @@ namespace AnimalAdoption.Web.Portal.FunctionalTests
 
         private ChromeDriver _driver;
 
-        [Fact(Skip = "Chrome driver missing")]
+        //[Fact(Skip = "Chrome driver missing")]
         [TestInitialize]
         public void ChromeDriverInitialize()
         {
@@ -36,6 +36,7 @@ namespace AnimalAdoption.Web.Portal.FunctionalTests
             _driver = new ChromeDriver(options);
         }
 
+        [Fact(Skip = "Chrome driver missing")]
         [TestMethod]
         public void HomePage_LoadPage_LoadsAnimalsIn10Seconds()
         {
