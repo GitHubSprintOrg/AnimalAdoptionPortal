@@ -5,7 +5,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System;
-using Xunit;
+//using Xunit;
 
 namespace AnimalAdoption.Web.Portal.FunctionalTests
 {
@@ -37,6 +37,7 @@ namespace AnimalAdoption.Web.Portal.FunctionalTests
         }
 
         //[Fact(Skip = "Chrome driver missing")]
+        [Ignore]
         [TestMethod]
         public void HomePage_LoadPage_LoadsAnimalsIn10Seconds()
         {
