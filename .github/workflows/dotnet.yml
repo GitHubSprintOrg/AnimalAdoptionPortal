@@ -37,4 +37,4 @@ jobs:
     #   run: dotnet test --no-build --verbosity normal
 
     - name: Unit Tests
-      run: run: dotnet test ${{ github.workspace }}\AnimalAdoption.Web.Portal.UnitTests\AnimalAdoption.Web.Portal.UnitTests.csproj --no-build --verbosity normal --configuration Release
+      run: dotnet test ${{ github.workspace }}\AnimalAdoption.Web.Portal.UnitTests\AnimalAdoption.Web.Portal.UnitTests.csproj --no-build --verbosity normal --configuration Release
