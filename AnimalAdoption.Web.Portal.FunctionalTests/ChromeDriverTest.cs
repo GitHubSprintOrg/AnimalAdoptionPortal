@@ -24,6 +24,10 @@ namespace AnimalAdoption.Web.Portal.FunctionalTests
             {
                 PageLoadStrategy = PageLoadStrategy.Normal
             };
+
+            // Headless argument to run on Ubuntu
+            options.AddArguments("headless");
+
             _driver = new ChromeDriver(options);
         }
 
