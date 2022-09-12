@@ -31,12 +31,12 @@ namespace AnimalAdoption.Web.Portal.FunctionalTests
             };
 
             // Headless argument to run on Ubuntu
-            options.AddArguments("headless");
+            //options.AddArguments("headless");
 
             _driver = new ChromeDriver(options);
         }
 
-        [Fact(Skip = "Chrome driver missing")]
+        //[Fact(Skip = "Chrome driver missing")]
         [TestMethod]
         public void HomePage_LoadPage_LoadsAnimalsIn10Seconds()
         {
