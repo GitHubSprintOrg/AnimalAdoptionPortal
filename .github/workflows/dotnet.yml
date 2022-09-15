@@ -119,11 +119,11 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy resources to the Test Resource Group using an Bicep template
+      - name: Deploy resources to the Test Resource Group using a Bicep template
         uses: azure/arm-deploy@v1
         with:
           subscriptionId: ${{ secrets.AG_SUBSCRIPTION_GUID }}
-          resourceGroupName: ${{ env.TEST_RESOURCE_GROUP_NAME }}
+          resourceGroupName: ${{ secrets.TEST_RESOURCE_GROUP_NAME }}
           template: ./bicep-template/deploy.bicep
           parameters: tenantGuid=${{ secrets.AG_TENANT_GUID }} appServicePlanName=${{ env.TEST_APP_SERVICE_PLAN_NAME }} keyVaultName=${{ env.TEST_KEY_VAULT_NAME }} webAppName=${{ env.TEST_WEB_APP_NAME }} resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.GHA_MSAG_RG_TEST_AUEAST_AZSPRINTSERIES_SP_MANAGED_APP_OBJECT_ID }}
           failOnStdErr: false
