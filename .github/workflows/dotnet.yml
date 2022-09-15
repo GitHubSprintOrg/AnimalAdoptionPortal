@@ -22,17 +22,26 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
-        # dotnet-version: 3.1.x
-        dotnet-version: 3.1.301
+        dotnet-version: 3.1.x
+        # dotnet-version: 3.1.301
+        source-url: https://nuget.pkg.github.com/TravisHuntingAWARE/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
+
+    # dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/OWNER/index.json"
+      
     - name: Install dependencies for all projects
       run: dotnet restore
 
     - name: Build all projects
       run: dotnet build --configuration Release --no-restore
 
-    - name: Publish Application
-      run: dotnet publish --output taa-portal
+    # - name: Publish Application
+    #   run: dotnet publish --output taa-portal
+
+    - name: Publish portal project in Release mode
+      run: dotnet publish ${{ github.workspace }}/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj --configuration Release --no-build --output ./taa-portal/
 
     # - name: Install Chrome
     #   uses: browser-actions/setup-chrome@latest
@@ -69,3 +78,15 @@ jobs:
       
     - name: Unit Tests 4
       run: dotnet test
+
+
+
+    - name: Pack common logic project for NuGet
+      run: dotnet pack AnimalAdoption.Common.Logic.csproj --configuration Release --no-build -p:PackageVersion=$PKG_VERSION
+      working-directory: ${{ github.workspace }}/AnimalAdoption.Common.Logic/
+      shell: bash
+      env:
+        PKG_VERSION: 1.0.0
+
+    - name: Push the CommonLogic NuGet package
+      run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
