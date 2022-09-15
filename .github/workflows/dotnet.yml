@@ -131,7 +131,6 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
         with:
-          # name: .net-app
           name: drop
 
       - name: Deploy to Azure Web App
