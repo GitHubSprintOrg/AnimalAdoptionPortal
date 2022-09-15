@@ -7,10 +7,6 @@ on:
     branches: [ "master" ]
 
 
-# env:
-#   ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: http://localhost:9000
-
-
 jobs:
   build:
 
@@ -42,15 +38,6 @@ jobs:
 
     - name: Publish portal project in Release mode
       run: dotnet publish ${{ github.workspace }}/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj --configuration Release --no-build --output ./taa-portal/
-
-    # - name: Install Chrome
-    #   uses: browser-actions/setup-chrome@latest
-    
-    # - name: Install Chrome Webdriver
-    #   uses: nanasess/setup-chromedriver@v1
-
-    # - name: Test
-    #   run: dotnet test --no-build --verbosity normal
 
     - name: List out directory contents
       run: |
@@ -127,6 +114,28 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # Use GlobalPassword secret from Github
+      # - name: Set Web App ACR authentication
+      #   uses: Azure/appservice-settings@v1
+      #   with:
+      #     app-name: 'AnimalAdoption1'
+      #     app-settings-json: |
+      #       [
+      #         {
+      #           "name": "GlobalPassword",
+      #           "value": "${{ secrets.GLOBAL_PASSWORD }}",
+      #           "slotSetting": false
+      #         }
+      #       ]
+
+      - name: Get GlobalPassword secret from Azure Key vault
+        uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: "animaladoption-dev-kv" # name of key vault in Azure portal
+          secrets: 'GlobalPassword'  # comma separated list of secret keys to fetch from key vault 
+        id: myGetSecretAction # ID for secrets that you will reference
+
+      # Use GlobalPassword secret from Azure Key Vault
       - name: Set Web App ACR authentication
         uses: Azure/appservice-settings@v1
         with:
@@ -135,7 +144,7 @@ jobs:
             [
               {
                 "name": "GlobalPassword",
-                "value": "${{ secrets.GLOBAL_PASSWORD }}",
+                "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
                 "slotSetting": false
               }
             ]
