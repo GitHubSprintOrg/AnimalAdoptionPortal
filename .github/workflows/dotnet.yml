@@ -24,19 +24,19 @@ jobs:
       with:
         dotnet-version: 3.1.x
         # dotnet-version: 3.1.301
+
+      # These flags below can be used for Nuget pushing
         # source-url: https://nuget.pkg.github.com/TravisHuntingAWARE/index.json
       # env:
         # NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-
-    # dotnet nuget add source --username USERNAME --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/OWNER/index.json"
-      
+              
     - name: Install dependencies for all projects
       run: dotnet restore
 
     - name: Build all projects
       run: dotnet build --configuration Release --no-restore
 
+    # This also works for publishing
     # - name: Publish Application
     #   run: dotnet publish --output taa-portal
 
@@ -79,9 +79,7 @@ jobs:
     - name: Unit Tests 4
       run: dotnet test
 
-
-
-    - name: Pack common logic project for NuGet
+    - name: Pack CommonLogic project for NuGet
       run: dotnet pack AnimalAdoption.Common.Logic.csproj --configuration Release --no-build -p:PackageVersion=$PKG_VERSION
       working-directory: ${{ github.workspace }}/AnimalAdoption.Common.Logic/
       shell: bash
@@ -89,9 +87,36 @@ jobs:
         PKG_VERSION: 1.0.0
 
     - name: Push the CommonLogic NuGet package
+      # this also works when run with the 'source-url' and "env -> NUGET_AUTH_TOKEN" options in the "Setup .NET Core" step
+      # gives a warning that you should use the --api-key option however
       # run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
       run: |
         dotnet nuget push "${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg" \
           --skip-duplicate \
           --api-key ${{ secrets.GITHUB_TOKEN }} \
           --source https://nuget.pkg.github.com/${{ github.repository_owner }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # Name of the build step above
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          # name: .net-app
+          name: drop
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'AnimalAdoption1'
+          # slot-name: 'production'
+          slot-name: 'dev'
+          # publish-profile: ${{ secrets.AzureAppService_PublishProfile_5e7bf0c465b9412982878234ae840612 }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: .
