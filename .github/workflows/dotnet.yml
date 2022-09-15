@@ -125,6 +125,7 @@ jobs:
         uses: Azure/appservice-settings@v1
         with:
           app-name: 'AnimalAdoption1'
+          slot-name: 'dev'
           app-settings-json: |
             [
               {
