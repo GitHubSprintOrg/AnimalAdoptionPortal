@@ -18,14 +18,21 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET
+
+    - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 3.1.x
-    - name: Restore dependencies
+        # dotnet-version: 3.1.x
+        dotnet-version: 3.1.301
+        
+    - name: Install dependencies for all projects
       run: dotnet restore
-    - name: Build
+
+    - name: Build all projects
       run: dotnet build --configuration Release --no-restore
+
+    - name: Publish Application
+      run: dotnet publish --output taa-portal
 
     # - name: Install Chrome
     #   uses: browser-actions/setup-chrome@latest
@@ -48,10 +55,19 @@ jobs:
       uses: actions/upload-artifact@v2.1.3
       with:
         name: drop
-        path: ${{ github.workspace }}/AnimalAdoption.Web.Portal/bin/Release/netcoreapp3.1/
+        # path: ${{ github.workspace }}/AnimalAdoption.Web.Portal/bin/Release/netcoreapp3.1/
+        path: ${{ github.workspace }}/taa-portal/
         if-no-files-found: error
 
-    - name: Unit Tests
+    
+    - name: Unit Tests 1
+      run: dotnet vstest ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
+
+    - name: Unit Tests 2
+      run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
+
+    - name: Unit Tests 3
       run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --verbosity normal --configuration Release
-      # run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --no-build --verbosity normal --configuration Release
-      # run: dotnet test
+      
+    - name: Unit Tests 4
+      run: dotnet test
