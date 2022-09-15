@@ -47,11 +47,25 @@ jobs:
         echo "Recursively listing all contents of the current directory"
         ls -R
 
-    - name: Upload a Build Artifact
+    - name: Upload a Build Artifact for Web Portal
       uses: actions/upload-artifact@v2.1.3
       with:
         name: drop
         path: ${{ github.workspace }}/taa-portal/
+        if-no-files-found: error
+
+    - name: Upload a build artifact for the Bicep template
+      uses: actions/upload-artifact@v2.1.3
+      with:
+        name: bicep-template
+        path: deploy.bicep
+        if-no-files-found: error
+
+    - name: Upload a build artifact for the functional tests
+      uses: actions/upload-artifact@v2.1.3
+      with:
+        name: functional-tests
+        path: ${{ github.workspace }}\AnimalAdoption.Web.Portal.FunctionalTests\bin\Release\netcoreapp3.1\*
         if-no-files-found: error
 
     - name: Unit Tests 1
@@ -83,14 +97,37 @@ jobs:
           --api-key ${{ secrets.GITHUB_TOKEN }} \
           --source https://nuget.pkg.github.com/${{ github.repository_owner }}
 
-  deploy:
+  release-to-test-env:
     runs-on: ubuntu-latest
     needs: build # Name of the build step above
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    env:
+      TEST_WEB_APP_NAME: AnimalAdoption1
+      TEST_KEY_VAULT_NAME: animaladoption-dev-kv
+    # environment:
+    #   name: 'production'
+    #   url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      - name: Download the bicep-template artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: bicep-template
+          path: ./bicep-template/
+
+      - name: Login to Azure using Test credentials
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy resources to the Test Resource Group using an Bicep template
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AG_SUBSCRIPTION_GUID }}
+          resourceGroupName: ${{ env.TEST_RESOURCE_GROUP_NAME }}
+          template: ./bicep-template/deploy.bicep
+          parameters: tenantGuid=${{ secrets.AG_TENANT_GUID }} appServicePlanName=${{ env.TEST_APP_SERVICE_PLAN_NAME }} keyVaultName=${{ env.TEST_KEY_VAULT_NAME }} webAppName=${{ env.TEST_WEB_APP_NAME }} resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.GHA_MSAG_RG_TEST_AUEAST_AZSPRINTSERIES_SP_MANAGED_APP_OBJECT_ID }}
+          failOnStdErr: false
+
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
         with:
@@ -101,18 +138,12 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'AnimalAdoption1'
+          app-name: ${{ env.TEST_WEB_APP_NAME }}
           # slot-name: 'production'
           slot-name: 'dev'
           # publish-profile: ${{ secrets.AzureAppService_PublishProfile_5e7bf0c465b9412982878234ae840612 }}
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_DEV }}
           package: .
-
-
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Use GlobalPassword secret from Github
       # - name: Set Web App ACR authentication
@@ -131,7 +162,7 @@ jobs:
       - name: Get GlobalPassword secret from Azure Key vault
         uses: Azure/get-keyvault-secrets@v1
         with:
-          keyvault: "animaladoption-dev-kv" # name of key vault in Azure portal
+          keyvault: ${{ env.TEST_KEY_VAULT_NAME }} # name of key vault in Azure portal
           secrets: 'GlobalPassword'  # comma separated list of secret keys to fetch from key vault 
         id: myGetSecretAction # ID for secrets that you will reference
 
@@ -148,3 +179,26 @@ jobs:
                 "slotSetting": false
               }
             ]
+  
+  run-functional-tests:
+    runs-on: windows-latest
+
+    needs: [release-to-test-env]
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    env:
+      ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://animaladoption1-dev.azurewebsites.net/
+
+    steps:
+      - name: Download the function-tests build artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: functional-tests
+          path: ./functional-tests/
+
+      - name: Add VSTest.console.exe to the PATH
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Run functional tests against the test instance of the TAA web portal
+        run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
