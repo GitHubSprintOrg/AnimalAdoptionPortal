@@ -134,3 +134,5 @@ jobs:
                 "slotSetting": false
               }
             ]
+        env:
+          AZURE_HTTP_USER_AGENT: 'pid-eb7927c8-dd66-43e1-b0cf-c346a422063'
