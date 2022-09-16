@@ -134,7 +134,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
 }
 
 resource webAppSlot 'Microsoft.Web/sites/slots@2021-02-01' = {
-  name: 'staging'
+  name: 'dev'
   parent: webApp
   location: location
   properties: {
