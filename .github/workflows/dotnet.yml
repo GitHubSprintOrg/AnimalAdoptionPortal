@@ -140,8 +140,8 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.TEST_WEB_APP_NAME }}
-          slot-name: 'production' # default when only one slot
-          # slot-name: 'dev'
+          # slot-name: 'production' # default when only one slot
+          slot-name: 'staging'
           # publish-profile: ${{ secrets.AzureAppService_PublishProfile_5e7bf0c465b9412982878234ae840612 }}
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_DEV }}
           package: .
@@ -189,7 +189,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     env:
-      ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://animaladoption1-dev.azurewebsites.net/
+      ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://animaladoption1-staging.azurewebsites.net/
 
     steps:
       - name: Download the function-tests build artifact
@@ -203,3 +203,67 @@ jobs:
 
       - name: Run functional tests against the test instance of the TAA web portal
         run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
+
+
+  release-to-prod-env:
+    runs-on: ubuntu-latest
+
+    needs: [run-functional-tests]
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    env:
+      PROD_RESOURCE_GROUP_NAME: rg-prod-aueast-azsprintseries
+      PROD_KEY_VAULT_NAME: kv-prod-aueast-adoption
+      PROD_WEB_APP_NAME: wa-prod-aueast-adoption
+      PROD_WEB_APP_SLOT_TO_DEPLOY_TO: production
+      PROD_APP_SERVICE_PLAN_NAME: ABC123 
+
+    steps:
+      - name: Download the bicep-template artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: bicep-template
+          path: ./bicep-template/
+
+      - name: Login to Azure using the Production SP credentials
+        uses: Azure/login@v1.1
+        with:
+          creds: ${{ secrets.GHA_MSAG_RG_PROD_AUEAST_AZSPRINTSERIES_SP }}
+
+      - name: Deploy resources to the Test Resource Group using an Bicep template
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AG_SUBSCRIPTION_GUID }}
+          resourceGroupName: ${{ env.PROD_RESOURCE_GROUP_NAME }}
+          template: ./bicep-template/deploy.bicep
+          parameters: tenantGuid=${{ secrets.AG_TENANT_GUID }} appServicePlanName=${{ env.PROD_APP_SERVICE_PLAN_NAME }} keyVaultName=${{ env.PROD_KEY_VAULT_NAME }} webAppName=${{ env.PROD_WEB_APP_NAME }} resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.GHA_MSAG_RG_PROD_AUEAST_AZSPRINTSERIES_SP_MANAGED_APP_OBJECT_ID }}
+          failOnStdErr: false
+
+      - name: Download the TAA web portal artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: taa-portal
+          path: ./taa-portal/
+
+      - name: "Deploy the TAA portal to the ${{ env.PROD_WEB_APP_SLOT_TO_DEPLOY_TO }} slot of the Production Web App"
+        uses: Azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.PROD_WEB_APP_NAME }}
+          package: ./taa-portal/
+          slot-name: ${{ env.PROD_WEB_APP_SLOT_TO_DEPLOY_TO }}
+
+      - name: Get Secrets from the Production Key Vault
+        id: getSecretsFromProductionKeyVault
+        uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: ${{ env.PROD_KEY_VAULT_NAME }}
+          # secrets: "GlobalPassword, SimulatedFailureChance"
+          secrets: "GlobalPassword"
+
+      - name: Update the App Settings for the Production Web App
+        uses: Azure/appservice-settings@v1
+        with:
+          app-name: ${{ env.PROD_WEB_APP_NAME }}
+          # app-settings-json: '[{"name": "GlobalPassword","value": "${{ steps.getSecretsFromProductionKeyVault.outputs.GlobalPassword }}","slotSetting": false},{"name": "SimulatedFailureChance","value": "${{ steps.getSecretsFromProductionKeyVault.outputs.SimulatedFailureChance }}","slotSetting": false}]'
+          app-settings-json: '[{"name": "GlobalPassword","value": "${{ steps.getSecretsFromProductionKeyVault.outputs.GlobalPassword }}","slotSetting": false}]'

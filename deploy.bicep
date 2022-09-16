@@ -33,11 +33,11 @@ resource webApp 'Microsoft.Web/sites@2021-02-01' = {
 }
 
 var yourAadUserObjectId = '26984cad-f6c9-4cf9-b47c-8ff3a355e896'
-var servicePrincipalObjectId = '47363b4f-e8bc-4d90-9554-b0d87f4e3cf1'
+// var servicePrincipalObjectId = '47363b4f-e8bc-4d90-9554-b0d87f4e3cf1'
 
 var userObjectIdsToGrantAccessPoliciesThatAllowFullControlForAllEntitiesInKeyVault = [
   yourAadUserObjectId
-  servicePrincipalObjectId
+  // servicePrincipalObjectId
 ]
 
 var identitiesThatRequiredSecretAccessPolicies = [
@@ -130,5 +130,13 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-06-01-preview' = {
       virtualNetworkRules: []
     }
     accessPolicies: keyVaultAccessPolicies
+  }
+}
+
+resource webAppSlot 'Microsoft.Web/sites/slots@2021-02-01' = {
+  name: 'staging'
+  parent: webApp
+  location: location
+  properties: {
   }
 }
