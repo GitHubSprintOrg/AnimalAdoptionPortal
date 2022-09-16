@@ -1,4 +1,4 @@
-param location string = 'southeastasia'
+param location string = 'australiaeast'
 param tenantGuid string
 param appServicePlanName string
 param keyVaultName string
