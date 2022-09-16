@@ -1,10 +1,10 @@
-name: .NET
+name: Deploy_All
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  # push:
+  #   branches: [ "master" ]
+  # pull_request:
+  #   branches: [ "master" ]
   workflow_dispatch:
 
 
