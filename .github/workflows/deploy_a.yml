@@ -92,13 +92,37 @@ jobs:
       # this also works when run with the 'source-url' and "env -> NUGET_AUTH_TOKEN" options in the "Setup .NET Core" step
       # gives a warning that you should use the --api-key option however
       # run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
+      # The secret "GITHUB_TOKEN" is created for you automatically by github
       run: |
         dotnet nuget push "${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg" \
           --skip-duplicate \
           --api-key ${{ secrets.GITHUB_TOKEN }} \
           --source https://nuget.pkg.github.com/${{ github.repository_owner }}
 
-  
+
+  # Deploy Job
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: drop
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'dev-animaladoption'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.DEV_PUBLISH_SETTINGS }}
+          package: .
+
 
 
 
