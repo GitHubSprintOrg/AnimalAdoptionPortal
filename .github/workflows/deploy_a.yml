@@ -245,7 +245,6 @@ jobs:
         with:
           name: drop
 
-      #Get the prod publish settings first, after the resources have been provisioned
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
@@ -270,7 +269,6 @@ jobs:
         with:
           name: drop
 
-      #Get the prod publish settings first, after the resources have been provisioned
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
@@ -299,7 +297,7 @@ jobs:
         id: myGetSecretAction # ID for secrets that you will reference
 
       # Use GlobalPassword secret from Azure Key Vault to set app settings
-      - name: Set Web App ACR authentication
+      - name: Set Web App ACR authentication - production slot
         uses: Azure/appservice-settings@v1
         with:
           app-name: "prod-animaladoption"
@@ -308,6 +306,29 @@ jobs:
               {
                 "name": "GlobalPassword",
                 "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
-                "slotSetting": false
+                "slotSetting": "production"
+              },
+              {
+                "name": "SimulatedFailureChance",
+                "value": 50,
+                "slotSetting": "production"
+              }
+            ]
+
+      - name: Set Web App ACR authentication - staging slot
+        uses: Azure/appservice-settings@v1
+        with:
+          app-name: "prod-animaladoption"
+          app-settings-json: |
+            [
+              {
+                "name": "GlobalPassword",
+                "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
+                "slotSetting": "staging"
+              },
+              {
+                "name": "SimulatedFailureChance",
+                "value": 50,
+                "slotSetting": "staging"
               }
             ]
