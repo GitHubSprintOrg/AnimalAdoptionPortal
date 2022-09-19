@@ -203,11 +203,17 @@ jobs:
       - name: Run functional tests against the test instance of the TAA web portal
         run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
 
-  deploy-prod:
+  provision-prod-with-bicep:
     runs-on: ubuntu-latest
     needs: functional-tests
 
     steps:
+
+    - name: Login to Azure using the Production SP credentials
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
+
     - name: Download the bicep-template artifact
       uses: actions/download-artifact@v2.0.5
       with:
@@ -223,6 +229,36 @@ jobs:
         parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-dev-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
         failOnStdErr: false
         deploymentMode: incremental
+
+  # deploy-prod:
+  #   runs-on: windows-latest
+  #   needs: [functional-tests, provision-prod-with-bicep]
+
+  #   environment:
+  #     name: 'production'
+  #     url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+  #   steps:
+  #     - name: Download artifact from build job
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: drop
+
+      # Get the prod publish settings first!
+      # - name: Deploy to Azure Web App
+      #   id: deploy-to-webapp
+      #   uses: azure/webapps-deploy@v2
+      #   with:
+      #     app-name: 'prod-animaladoption'
+      #     slot-name: 'production'
+      #     publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS }}
+      #     package: .
+
+
+
+
+
+
 
 
 
