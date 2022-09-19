@@ -231,7 +231,7 @@ jobs:
           failOnStdErr: false
           deploymentMode: incremental
 
-  deploy-prod:
+  deploy-prod-staging:
     runs-on: windows-latest
     needs: [provision-prod-with-bicep]
 
@@ -252,6 +252,31 @@ jobs:
         with:
           app-name: "prod-animaladoption"
           slot-name: "staging"
+          # Get the publish settings by visiting your app in Azure and downloading them
+          publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS_STAGING }}
+          package: .
+
+  deploy-prod-production:
+    runs-on: windows-latest
+    needs: [provision-prod-with-bicep]
+
+    environment:
+      name: "production"
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: drop
+
+      #Get the prod publish settings first, after the resources have been provisioned
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "prod-animaladoption"
+          slot-name: "production"
           # Get the publish settings by visiting your app in Azure and downloading them
           publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS }}
           package: .
