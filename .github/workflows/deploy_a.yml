@@ -55,6 +55,13 @@ jobs:
         path: ${{ github.workspace }}/taa-portal/
         if-no-files-found: error
 
+    - name: Upload a build artifact for the functional tests
+      uses: actions/upload-artifact@v2.1.3
+      with:
+        name: functional-tests
+        path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
+        if-no-files-found: error
+
     # - name: Upload a build artifact for the Bicep template
     #   uses: actions/upload-artifact@v2.1.3
     #   with:
@@ -101,7 +108,7 @@ jobs:
 
 
   # Deploy Job
-  deploy:
+  deploy-dev:
     runs-on: windows-latest
     needs: build
     environment:
@@ -123,35 +130,35 @@ jobs:
           publish-profile: ${{ secrets.DEV_PUBLISH_SETTINGS }}
           package: .
 
-  # set-dev-application-settings-via-secret:
-  #   runs-on: windows-latest
-  #   needs: deploy
+  set-dev-application-settings-via-secret:
+    runs-on: windows-latest
+    needs: deploy-dev
 
-  #   steps:
-  #     # Login with the service principal
-  #     # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
-  #     - name: Login to Azure using the Production SP credentials
-  #       uses: Azure/login@v1.1
-  #       with:
-  #         creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
+    steps:
+      # Login with the service principal
+      # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
+      - name: Login to Azure using the Production SP credentials
+        uses: Azure/login@v1.1
+        with:
+          creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
 
-  #     # Use GlobalPassword secret from Github
-  #     - name: Set Application Settings
-  #       uses: Azure/appservice-settings@v1
-  #       with:
-  #         app-name: 'dev-animaladoption'
-  #         app-settings-json: |
-  #           [
-  #             {
-  #               "name": "GlobalPassword",
-  #               "value": "${{ secrets.DEV_GLOBAL_PASSWORD }}",
-  #               "slotSetting": false
-  #             }
-  #           ]
+      # Use GlobalPassword secret from Github
+      - name: Set Application Settings
+        uses: Azure/appservice-settings@v1
+        with:
+          app-name: 'dev-animaladoption'
+          app-settings-json: |
+            [
+              {
+                "name": "GlobalPassword",
+                "value": "${{ secrets.DEV_GLOBAL_PASSWORD }}",
+                "slotSetting": false
+              }
+            ]
 
   set-dev-application-settings-via-keyvault:
     runs-on: windows-latest
-    needs: deploy
+    needs: deploy-dev
 
     steps:
       # Login with the service principal
@@ -181,6 +188,28 @@ jobs:
                 "slotSetting": false
               }
             ]
+    
+  # run-functional-tests:
+  functional-tests:
+    runs-on: windows-latest
+
+    needs: deploy-dev
+
+    env:
+      ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://dev-animaladoption.azurewebsites.net/
+
+    steps:
+      - name: Download the function-tests build artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: functional-tests
+          path: ./functional-tests/
+
+      - name: Add VSTest.console.exe to the PATH
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Run functional tests against the test instance of the TAA web portal
+        run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
 
 
   # release-to-test-env:
