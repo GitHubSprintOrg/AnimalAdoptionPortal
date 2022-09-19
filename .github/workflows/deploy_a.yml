@@ -185,7 +185,7 @@ jobs:
   functional-tests:
     runs-on: windows-latest
 
-    needs: deploy-dev
+    needs: [deploy-dev, set-dev-application-settings-via-secret, set-dev-application-settings-via-keyvault]
 
     env:
       ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://dev-animaladoption.azurewebsites.net/
