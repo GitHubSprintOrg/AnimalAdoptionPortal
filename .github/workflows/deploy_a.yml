@@ -2,109 +2,106 @@ name: Deploy
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
   workflow_dispatch:
-
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 3.1.x
-        # dotnet-version: 3.1.301
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 3.1.x
+          # dotnet-version: 3.1.301
 
-      # These flags below can be used for Nuget pushing
+        # These flags below can be used for Nuget pushing
         # source-url: https://nuget.pkg.github.com/TravisHuntingAWARE/index.json
-      # env:
+        # env:
         # NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              
-    - name: Install dependencies for all projects
-      run: dotnet restore
+      - name: Install dependencies for all projects
+        run: dotnet restore
 
-    - name: Build all projects
-      run: dotnet build --configuration Release --no-restore
+      - name: Build all projects
+        run: dotnet build --configuration Release --no-restore
 
-    # This also works for publishing
-    # - name: Publish Application
-    #   run: dotnet publish --output taa-portal
+      # This also works for publishing
+      # - name: Publish Application
+      #   run: dotnet publish --output taa-portal
 
-    - name: Publish portal project in Release mode
-      run: dotnet publish ${{ github.workspace }}/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj --configuration Release --no-build --output ./taa-portal/
+      - name: Publish portal project in Release mode
+        run: dotnet publish ${{ github.workspace }}/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj --configuration Release --no-build --output ./taa-portal/
 
-    - name: List out directory contents
-      run: |
-        echo "Listing the contents of the GitHub workspace directory"
-        ls ${{ github.workspace }}
+      - name: List out directory contents
+        run: |
+          echo "Listing the contents of the GitHub workspace directory"
+          ls ${{ github.workspace }}
 
-        echo "Recursively listing all contents of the current directory"
-        ls -R
+          echo "Recursively listing all contents of the current directory"
+          ls -R
 
-    - name: Upload a Build Artifact for Web Portal
-      uses: actions/upload-artifact@v2.1.3
-      with:
-        name: drop
-        path: ${{ github.workspace }}/taa-portal/
-        if-no-files-found: error
+      - name: Upload a Build Artifact for Web Portal
+        uses: actions/upload-artifact@v2.1.3
+        with:
+          name: drop
+          path: ${{ github.workspace }}/taa-portal/
+          if-no-files-found: error
 
-    - name: Upload a build artifact for the functional tests
-      uses: actions/upload-artifact@v2.1.3
-      with:
-        name: functional-tests
-        path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
-        if-no-files-found: error
+      - name: Upload a build artifact for the functional tests
+        uses: actions/upload-artifact@v2.1.3
+        with:
+          name: functional-tests
+          path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
+          if-no-files-found: error
 
-    - name: Upload a build artifact for the Bicep template
-      uses: actions/upload-artifact@v2.1.3
-      with:
-        name: bicep-template
-        path: deploy.bicep
-        if-no-files-found: error
+      - name: Upload a build artifact for the Bicep template
+        uses: actions/upload-artifact@v2.1.3
+        with:
+          name: bicep-template
+          path: deploy.bicep
+          if-no-files-found: error
 
-    - name: Unit Tests 1
-      run: dotnet vstest ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
+      - name: Unit Tests 1
+        run: dotnet vstest ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
 
-    - name: Unit Tests 2
-      run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
+      - name: Unit Tests 2
+        run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
 
-    - name: Unit Tests 3
-      run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --verbosity normal --configuration Release
-      
-    - name: Unit Tests 4
-      run: dotnet test
+      - name: Unit Tests 3
+        run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --verbosity normal --configuration Release
 
-    - name: Pack CommonLogic project for NuGet
-      run: dotnet pack AnimalAdoption.Common.Logic.csproj --configuration Release --no-build -p:PackageVersion=$PKG_VERSION
-      working-directory: ${{ github.workspace }}/AnimalAdoption.Common.Logic/
-      shell: bash
-      env:
-        PKG_VERSION: 1.0.0
+      - name: Unit Tests 4
+        run: dotnet test
 
-    - name: Push the CommonLogic NuGet package
-      # this also works when run with the 'source-url' and "env -> NUGET_AUTH_TOKEN" options in the "Setup .NET Core" step
-      # gives a warning that you should use the --api-key option however
-      # run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
-      # The secret "GITHUB_TOKEN" is created for you automatically by github
-      run: |
-        dotnet nuget push "${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg" \
-          --skip-duplicate \
-          --api-key ${{ secrets.GITHUB_TOKEN }} \
-          --source https://nuget.pkg.github.com/${{ github.repository_owner }}
+      - name: Pack CommonLogic project for NuGet
+        run: dotnet pack AnimalAdoption.Common.Logic.csproj --configuration Release --no-build -p:PackageVersion=$PKG_VERSION
+        working-directory: ${{ github.workspace }}/AnimalAdoption.Common.Logic/
+        shell: bash
+        env:
+          PKG_VERSION: 1.0.0
+
+      - name: Push the CommonLogic NuGet package
+        # this also works when run with the 'source-url' and "env -> NUGET_AUTH_TOKEN" options in the "Setup .NET Core" step
+        # gives a warning that you should use the --api-key option however
+        # run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
+        # The secret "GITHUB_TOKEN" is created for you automatically by github
+        run: |
+          dotnet nuget push "${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg" \
+            --skip-duplicate \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source https://nuget.pkg.github.com/${{ github.repository_owner }}
 
   # Deploy Job
   deploy-dev:
     runs-on: windows-latest
     needs: build
     environment:
-      name: 'production'
+      name: "production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
@@ -117,8 +114,8 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'dev-animaladoption'
-          slot-name: 'production'
+          app-name: "dev-animaladoption"
+          slot-name: "production"
           publish-profile: ${{ secrets.DEV_PUBLISH_SETTINGS }}
           package: .
 
@@ -138,7 +135,7 @@ jobs:
       - name: Set Application Settings
         uses: Azure/appservice-settings@v1
         with:
-          app-name: 'dev-animaladoption'
+          app-name: "dev-animaladoption"
           app-settings-json: |
             [
               {
@@ -164,14 +161,14 @@ jobs:
         uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: kv-dev-animaladoption # name of key vault in Azure portal
-          secrets: 'GlobalPassword'  # comma separated list of secret keys to fetch from key vault 
+          secrets: "GlobalPassword" # comma separated list of secret keys to fetch from key vault
         id: myGetSecretAction # ID for secrets that you will reference
 
       # Use GlobalPassword secret from Azure Key Vault to set app settings
       - name: Set Web App ACR authentication
         uses: Azure/appservice-settings@v1
         with:
-          app-name: 'dev-animaladoption'
+          app-name: "dev-animaladoption"
           app-settings-json: |
             [
               {
@@ -180,12 +177,17 @@ jobs:
                 "slotSetting": false
               }
             ]
-    
+
   # run-functional-tests:
   functional-tests:
     runs-on: windows-latest
 
-    needs: [deploy-dev, set-dev-application-settings-via-secret, set-dev-application-settings-via-keyvault]
+    needs:
+      [
+        deploy-dev,
+        set-dev-application-settings-via-secret,
+        set-dev-application-settings-via-keyvault,
+      ]
 
     env:
       ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://dev-animaladoption.azurewebsites.net/
@@ -208,33 +210,33 @@ jobs:
     needs: functional-tests
 
     steps:
-    - name: Login to Azure using the Production SP credentials
-      uses: Azure/login@v1.1
-      with:
-        creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
+      - name: Login to Azure using the Production SP credentials
+        uses: Azure/login@v1.1
+        with:
+          creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
 
-    - name: Download the bicep-template artifact
-      uses: actions/download-artifact@v2.0.5
-      with:
-        name: bicep-template
-        path: ./bicep-template/
+      - name: Download the bicep-template artifact
+        uses: actions/download-artifact@v2.0.5
+        with:
+          name: bicep-template
+          path: ./bicep-template/
 
-    - name: Deploy resources to the prod Resource Group using a Bicep template
-      uses: azure/arm-deploy@v1
-      with:
-        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        resourceGroupName: prod
-        template: ./bicep-template/deploy.bicep
-        parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-prod-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
-        failOnStdErr: false
-        deploymentMode: incremental
+      - name: Deploy resources to the prod Resource Group using a Bicep template
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: prod
+          template: ./bicep-template/deploy.bicep
+          parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-prod-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
+          failOnStdErr: false
+          deploymentMode: incremental
 
   deploy-prod:
     runs-on: windows-latest
     needs: [provision-prod-with-bicep]
 
     environment:
-      name: 'production'
+      name: "production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
@@ -248,8 +250,9 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'prod-animaladoption'
-          slot-name: 'production'
+          app-name: "prod-animaladoption"
+          slot-name: "staging"
+          # Get the publish settings by visiting your app in Azure and downloading them
           publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS }}
           package: .
 
@@ -267,14 +270,14 @@ jobs:
         uses: Azure/get-keyvault-secrets@v1
         with:
           keyvault: kv-prod-animaladoption # name of key vault in Azure portal
-          secrets: 'GlobalPassword'  # comma separated list of secret keys to fetch from key vault 
+          secrets: "GlobalPassword" # comma separated list of secret keys to fetch from key vault
         id: myGetSecretAction # ID for secrets that you will reference
 
       # Use GlobalPassword secret from Azure Key Vault to set app settings
       - name: Set Web App ACR authentication
         uses: Azure/appservice-settings@v1
         with:
-          app-name: 'prod-animaladoption'
+          app-name: "prod-animaladoption"
           app-settings-json: |
             [
               {
