@@ -236,7 +236,7 @@ jobs:
     needs: [provision-prod-with-bicep]
 
     environment:
-      name: "production"
+      name: "staging"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
@@ -252,7 +252,7 @@ jobs:
         with:
           app-name: "prod-animaladoption"
           slot-name: "staging"
-          # Get the publish settings by visiting your app in Azure and downloading them
+          # Get the publish settings by visiting your app (correct slot) in Azure and downloading them
           publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS_STAGING }}
           package: .
 
@@ -277,7 +277,7 @@ jobs:
         with:
           app-name: "prod-animaladoption"
           slot-name: "production"
-          # Get the publish settings by visiting your app in Azure and downloading them
+          # Get the publish settings by visiting your app (correct slot) in Azure and downloading them
           publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS }}
           package: .
 
