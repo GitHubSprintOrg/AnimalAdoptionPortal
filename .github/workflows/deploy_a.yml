@@ -208,7 +208,6 @@ jobs:
     needs: functional-tests
 
     steps:
-
     - name: Login to Azure using the Production SP credentials
       uses: Azure/login@v1.1
       with:
@@ -226,7 +225,7 @@ jobs:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         resourceGroupName: prod
         template: ./bicep-template/deploy.bicep
-        parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-dev-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
+        parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-prod-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
         failOnStdErr: false
         deploymentMode: incremental
 
