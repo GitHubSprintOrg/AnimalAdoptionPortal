@@ -172,7 +172,7 @@ jobs:
       - name: Set Web App ACR authentication
         uses: Azure/appservice-settings@v1
         with:
-          app-name: 'AnimalAdoption1'
+          app-name: 'dev-animaladoption'
           app-settings-json: |
             [
               {
