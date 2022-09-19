@@ -123,6 +123,31 @@ jobs:
           publish-profile: ${{ secrets.DEV_PUBLISH_SETTINGS }}
           package: .
 
+  set-application-settings:
+    runs-on: windows-latest
+    needs: deploy
+
+    steps:
+      # Login with the service principal
+      # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
+      - name: Login to Azure using the Production SP credentials
+        uses: Azure/login@v1.1
+        with:
+          creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
+
+      # Use GlobalPassword secret from Github
+      - name: Set Application Settings
+        uses: Azure/appservice-settings@v1
+        with:
+          app-name: 'dev-animaladoption'
+          app-settings-json: |
+            [
+              {
+                "name": "GlobalPassword",
+                "value": "${{ secrets.DEV_GLOBAL_PASSWORD }}",
+                "slotSetting": false
+              }
+            ]
 
 
 
