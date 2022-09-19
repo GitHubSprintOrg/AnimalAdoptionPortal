@@ -62,19 +62,12 @@ jobs:
         path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
         if-no-files-found: error
 
-    # - name: Upload a build artifact for the Bicep template
-    #   uses: actions/upload-artifact@v2.1.3
-    #   with:
-    #     name: bicep-template
-    #     path: deploy.bicep
-    #     if-no-files-found: error
-
-    # - name: Upload a build artifact for the functional tests
-    #   uses: actions/upload-artifact@v2.1.3
-    #   with:
-    #     name: functional-tests
-    #     path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
-    #     if-no-files-found: error
+    - name: Upload a build artifact for the Bicep template
+      uses: actions/upload-artifact@v2.1.3
+      with:
+        name: bicep-template
+        path: deploy.bicep
+        if-no-files-found: error
 
     - name: Unit Tests 1
       run: dotnet vstest ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
@@ -105,7 +98,6 @@ jobs:
           --skip-duplicate \
           --api-key ${{ secrets.GITHUB_TOKEN }} \
           --source https://nuget.pkg.github.com/${{ github.repository_owner }}
-
 
   # Deploy Job
   deploy-dev:
@@ -211,6 +203,26 @@ jobs:
       - name: Run functional tests against the test instance of the TAA web portal
         run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
 
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: functional-tests
+
+    steps:
+    - name: Download the bicep-template artifact
+      uses: actions/download-artifact@v2.0.5
+      with:
+        name: bicep-template
+        path: ./bicep-template/
+
+    - name: Deploy resources to the prod Resource Group using a Bicep template
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        resourceGroupName: prod
+        template: ./bicep-template/deploy.bicep
+        parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-dev-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
+        failOnStdErr: false
+        deploymentMode: incremental
 
 
 
