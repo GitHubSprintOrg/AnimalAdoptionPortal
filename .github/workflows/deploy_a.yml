@@ -255,7 +255,7 @@ jobs:
 
   set-prod-application-settings-via-keyvault:
     runs-on: windows-latest
-    needs: deploy-dev
+    needs: deploy-prod
 
     steps:
       # # Login with the service principal
