@@ -283,7 +283,7 @@ jobs:
 
   set-prod-application-settings-via-keyvault:
     runs-on: windows-latest
-    needs: deploy-prod
+    needs: deploy-prod-staging
 
     steps:
       - name: Login to Azure using the Production SP credentials
