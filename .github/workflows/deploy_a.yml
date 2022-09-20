@@ -366,7 +366,6 @@ jobs:
           inlineScript: |
             Install-Module -Name Az.AlertsManagement -Force -AllowClobber
             $Alerts = Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
-            echo $Alerts
             if ($Alerts) { echo "ALERTS=true" >> $GITHUB_ENV }
             if ($Alerts) { echo '::set-output name=ALERTS::true' }
             if ($Alerts) { echo "ALERTS HAS VALUE" }
