@@ -320,7 +320,8 @@ jobs:
         with:
           app-name: "prod-animaladoption"
           # Set the slot - default is production
-          slotName: staging
+          # https://github.com/marketplace/actions/azure-app-service-settings
+          slot-name: "staging"
           app-settings-json: |
             [
               {
