@@ -360,15 +360,11 @@ jobs:
           #   Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
           azPSVersion: "latest"
 
-  switch-slots:
-    runs-on: windows-latest
-    needs: check-alerts
-    # if: true
-    if: ${{ GITHUB_ENV.ALERTS }}
-
-    steps:
-      - name: Login to Azure using the Production SP credentials
-        uses: Azure/login@v1.1
+      - name: switch-slots
+        if: ${{ env.ALERTS }}
+        # if: ${{ GITHUB_ENV.ALERTS }}
+        uses: azure/powershell@v1
         with:
-          creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
-          enable-AzPSSession: true 
+          inlineScript: |
+           az webapp deployment slot swap -n "prod-animaladoption" -g "prod" -s "staging" --target-slot "production"
+          azPSVersion: "latest"
