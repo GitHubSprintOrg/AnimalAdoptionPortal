@@ -355,6 +355,7 @@ jobs:
           inlineScript: |
             $Alerts = az rest -m get --header "Accept=application/json" -u 'https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.AlertsManagement/alerts?api-version=2018-05-05&timeRange=1h' | ConvertFrom-Json
             if ($Alerts.value) { echo "ALERTS=$Alerts" >> $GITHUB_ENV }
+            if ($Alerts.value) { echo "ALERTS HAS VALUE" }
           # inlineScript: |
           #   Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
           azPSVersion: "latest"
@@ -362,8 +363,8 @@ jobs:
   switch-slots:
     runs-on: windows-latest
     needs: check-alerts
-    if: true
-    # if: ${{ env.ALERTS }}
+    # if: true
+    if: ${{ GITHUB_ENV.ALERTS }}
 
     steps:
       - name: Login to Azure using the Production SP credentials
