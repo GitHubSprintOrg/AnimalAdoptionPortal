@@ -351,6 +351,7 @@ jobs:
           # failOnStandardError: true
 
       - name: Run Azure PowerShell script
+        id: get-alerts
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
@@ -367,14 +368,14 @@ jobs:
             $Alerts = Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
             echo $Alerts
             if ($Alerts) { echo "ALERTS=true" >> $GITHUB_ENV }
+            if ($Alerts) { echo '::set-output name=ALERTS::true' }
             if ($Alerts) { echo "ALERTS HAS VALUE" }
             if (!$Alerts) { echo "ALERTS DOES NOT HAVE VALUE / IS NULL" }
             echo ${{ env.ALERTS }}
-          # inlineScript: |
-          #   Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
 
       - name: switch-slots
-        if: ${{ env.ALERTS }}
+        if: ${{ steps.get-alerts.outputs.ALERTS }}
+        # if: ${{ env.ALERTS }}
         # if: ${{ GITHUB_ENV.ALERTS }}
         uses: azure/powershell@v1
         with:
