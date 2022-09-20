@@ -8,337 +8,337 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  # build:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 3.1.x
-          # dotnet-version: 3.1.301
+  #     - name: Setup .NET Core
+  #       uses: actions/setup-dotnet@v2
+  #       with:
+  #         dotnet-version: 3.1.x
+  #         # dotnet-version: 3.1.301
 
-        # These flags below can be used for Nuget pushing
-        # source-url: https://nuget.pkg.github.com/TravisHuntingAWARE/index.json
-        # env:
-        # NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install dependencies for all projects
-        run: dotnet restore
+  #       # These flags below can be used for Nuget pushing
+  #       # source-url: https://nuget.pkg.github.com/TravisHuntingAWARE/index.json
+  #       # env:
+  #       # NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Install dependencies for all projects
+  #       run: dotnet restore
 
-      - name: Build all projects
-        run: dotnet build --configuration Release --no-restore
+  #     - name: Build all projects
+  #       run: dotnet build --configuration Release --no-restore
 
-      # This also works for publishing
-      # - name: Publish Application
-      #   run: dotnet publish --output taa-portal
+  #     # This also works for publishing
+  #     # - name: Publish Application
+  #     #   run: dotnet publish --output taa-portal
 
-      - name: Publish portal project in Release mode
-        run: dotnet publish ${{ github.workspace }}/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj --configuration Release --no-build --output ./taa-portal/
+  #     - name: Publish portal project in Release mode
+  #       run: dotnet publish ${{ github.workspace }}/AnimalAdoption.Web.Portal/AnimalAdoption.Web.Portal.csproj --configuration Release --no-build --output ./taa-portal/
 
-      - name: List out directory contents
-        run: |
-          echo "Listing the contents of the GitHub workspace directory"
-          ls ${{ github.workspace }}
+  #     - name: List out directory contents
+  #       run: |
+  #         echo "Listing the contents of the GitHub workspace directory"
+  #         ls ${{ github.workspace }}
 
-          echo "Recursively listing all contents of the current directory"
-          ls -R
+  #         echo "Recursively listing all contents of the current directory"
+  #         ls -R
 
-      - name: Upload a Build Artifact for Web Portal
-        uses: actions/upload-artifact@v2.1.3
-        with:
-          name: drop
-          path: ${{ github.workspace }}/taa-portal/
-          if-no-files-found: error
+  #     - name: Upload a Build Artifact for Web Portal
+  #       uses: actions/upload-artifact@v2.1.3
+  #       with:
+  #         name: drop
+  #         path: ${{ github.workspace }}/taa-portal/
+  #         if-no-files-found: error
 
-      - name: Upload a build artifact for the functional tests
-        uses: actions/upload-artifact@v2.1.3
-        with:
-          name: functional-tests
-          path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
-          if-no-files-found: error
+  #     - name: Upload a build artifact for the functional tests
+  #       uses: actions/upload-artifact@v2.1.3
+  #       with:
+  #         name: functional-tests
+  #         path: ${{ github.workspace }}/AnimalAdoption.Web.Portal.FunctionalTests/bin/Release/netcoreapp3.1/*
+  #         if-no-files-found: error
 
-      - name: Upload a build artifact for the Bicep template
-        uses: actions/upload-artifact@v2.1.3
-        with:
-          name: bicep-template
-          path: deploy.bicep
-          if-no-files-found: error
+  #     - name: Upload a build artifact for the Bicep template
+  #       uses: actions/upload-artifact@v2.1.3
+  #       with:
+  #         name: bicep-template
+  #         path: deploy.bicep
+  #         if-no-files-found: error
 
-      - name: Unit Tests 1
-        run: dotnet vstest ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
+  #     - name: Unit Tests 1
+  #       run: dotnet vstest ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
 
-      - name: Unit Tests 2
-        run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
+  #     - name: Unit Tests 2
+  #       run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/bin/Release/netcoreapp3.1/AnimalAdoption.Web.Portal.UnitTests.dll
 
-      - name: Unit Tests 3
-        run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --verbosity normal --configuration Release
+  #     - name: Unit Tests 3
+  #       run: dotnet test ${{ github.workspace }}/AnimalAdoption.Web.Portal.UnitTests/AnimalAdoption.Web.Portal.UnitTests.csproj --verbosity normal --configuration Release
 
-      - name: Unit Tests 4
-        run: dotnet test
+  #     - name: Unit Tests 4
+  #       run: dotnet test
 
-      - name: Pack CommonLogic project for NuGet
-        run: dotnet pack AnimalAdoption.Common.Logic.csproj --configuration Release --no-build -p:PackageVersion=$PKG_VERSION
-        working-directory: ${{ github.workspace }}/AnimalAdoption.Common.Logic/
-        shell: bash
-        env:
-          PKG_VERSION: 1.0.0
+  #     - name: Pack CommonLogic project for NuGet
+  #       run: dotnet pack AnimalAdoption.Common.Logic.csproj --configuration Release --no-build -p:PackageVersion=$PKG_VERSION
+  #       working-directory: ${{ github.workspace }}/AnimalAdoption.Common.Logic/
+  #       shell: bash
+  #       env:
+  #         PKG_VERSION: 1.0.0
 
-      - name: Push the CommonLogic NuGet package
-        # this also works when run with the 'source-url' and "env -> NUGET_AUTH_TOKEN" options in the "Setup .NET Core" step
-        # gives a warning that you should use the --api-key option however
-        # run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
-        # The secret "GITHUB_TOKEN" is created for you automatically by github
-        run: |
-          dotnet nuget push "${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg" \
-            --skip-duplicate \
-            --api-key ${{ secrets.GITHUB_TOKEN }} \
-            --source https://nuget.pkg.github.com/${{ github.repository_owner }}
+  #     - name: Push the CommonLogic NuGet package
+  #       # this also works when run with the 'source-url' and "env -> NUGET_AUTH_TOKEN" options in the "Setup .NET Core" step
+  #       # gives a warning that you should use the --api-key option however
+  #       # run: dotnet nuget push  ${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg --skip-duplicate
+  #       # The secret "GITHUB_TOKEN" is created for you automatically by github
+  #       run: |
+  #         dotnet nuget push "${{ github.workspace }}/AnimalAdoption.Common.Logic/bin/Release/*.nupkg" \
+  #           --skip-duplicate \
+  #           --api-key ${{ secrets.GITHUB_TOKEN }} \
+  #           --source https://nuget.pkg.github.com/${{ github.repository_owner }}
 
-  # Deploy Job
-  deploy-dev:
-    runs-on: windows-latest
-    needs: build
-    environment:
-      name: "production"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+  # # Deploy Job
+  # deploy-dev:
+  #   runs-on: windows-latest
+  #   needs: build
+  #   environment:
+  #     name: "production"
+  #     url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: drop
+  #   steps:
+  #     - name: Download artifact from build job
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: drop
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: "dev-animaladoption"
-          slot-name: "production"
-          publish-profile: ${{ secrets.DEV_PUBLISH_SETTINGS }}
-          package: .
+  #     - name: Deploy to Azure Web App
+  #       id: deploy-to-webapp
+  #       uses: azure/webapps-deploy@v2
+  #       with:
+  #         app-name: "dev-animaladoption"
+  #         slot-name: "production"
+  #         publish-profile: ${{ secrets.DEV_PUBLISH_SETTINGS }}
+  #         package: .
 
-  set-dev-application-settings-via-secret:
-    runs-on: windows-latest
-    needs: deploy-dev
+  # set-dev-application-settings-via-secret:
+  #   runs-on: windows-latest
+  #   needs: deploy-dev
 
-    steps:
-      # Login with the service principal
-      # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
-      - name: Login to Azure using the Production SP credentials
-        uses: Azure/login@v1.1
-        with:
-          creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
+  #   steps:
+  #     # Login with the service principal
+  #     # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
+  #     - name: Login to Azure using the Production SP credentials
+  #       uses: Azure/login@v1.1
+  #       with:
+  #         creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
 
-      # Use GlobalPassword secret from Github
-      - name: Set Application Settings
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: "dev-animaladoption"
-          app-settings-json: |
-            [
-              {
-                "name": "GlobalPassword",
-                "value": "${{ secrets.DEV_GLOBAL_PASSWORD }}",
-                "slotSetting": false
-              }
-            ]
+  #     # Use GlobalPassword secret from Github
+  #     - name: Set Application Settings
+  #       uses: Azure/appservice-settings@v1
+  #       with:
+  #         app-name: "dev-animaladoption"
+  #         app-settings-json: |
+  #           [
+  #             {
+  #               "name": "GlobalPassword",
+  #               "value": "${{ secrets.DEV_GLOBAL_PASSWORD }}",
+  #               "slotSetting": false
+  #             }
+  #           ]
 
-  set-dev-application-settings-via-keyvault:
-    runs-on: windows-latest
-    needs: deploy-dev
+  # set-dev-application-settings-via-keyvault:
+  #   runs-on: windows-latest
+  #   needs: deploy-dev
 
-    steps:
-      # Login with the service principal
-      # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
-      - name: Login to Azure using the Production SP credentials
-        uses: Azure/login@v1.1
-        with:
-          creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
+  #   steps:
+  #     # Login with the service principal
+  #     # Get AZURE_CREDENTIALS using the command from https://github.com/marketplace/actions/azure-app-service-settings
+  #     - name: Login to Azure using the Production SP credentials
+  #       uses: Azure/login@v1.1
+  #       with:
+  #         creds: ${{ secrets.DEV_SP_AZURE_CREDENTIALS }}
 
-      - name: Get GlobalPassword secret from Azure Key vault
-        uses: Azure/get-keyvault-secrets@v1
-        with:
-          keyvault: kv-dev-animaladoption # name of key vault in Azure portal
-          secrets: "GlobalPassword" # comma separated list of secret keys to fetch from key vault
-        id: myGetSecretAction # ID for secrets that you will reference
+  #     - name: Get GlobalPassword secret from Azure Key vault
+  #       uses: Azure/get-keyvault-secrets@v1
+  #       with:
+  #         keyvault: kv-dev-animaladoption # name of key vault in Azure portal
+  #         secrets: "GlobalPassword" # comma separated list of secret keys to fetch from key vault
+  #       id: myGetSecretAction # ID for secrets that you will reference
 
-      # Use GlobalPassword secret from Azure Key Vault to set app settings
-      - name: Set Web App ACR authentication
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: "dev-animaladoption"
-          app-settings-json: |
-            [
-              {
-                "name": "GlobalPassword",
-                "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
-                "slotSetting": false
-              }
-            ]
+  #     # Use GlobalPassword secret from Azure Key Vault to set app settings
+  #     - name: Set Web App ACR authentication
+  #       uses: Azure/appservice-settings@v1
+  #       with:
+  #         app-name: "dev-animaladoption"
+  #         app-settings-json: |
+  #           [
+  #             {
+  #               "name": "GlobalPassword",
+  #               "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
+  #               "slotSetting": false
+  #             }
+  #           ]
 
-  #run-functional-tests
-  functional-tests:
-    runs-on: windows-latest
+  # #run-functional-tests
+  # functional-tests:
+  #   runs-on: windows-latest
 
-    needs:
-      [
-        deploy-dev,
-        set-dev-application-settings-via-secret,
-        set-dev-application-settings-via-keyvault,
-      ]
+  #   needs:
+  #     [
+  #       deploy-dev,
+  #       set-dev-application-settings-via-secret,
+  #       set-dev-application-settings-via-keyvault,
+  #     ]
 
-    env:
-      ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://dev-animaladoption.azurewebsites.net/
+  #   env:
+  #     ANIMAL_ADOPTION_FUNCTIONAL_TEST_PATH: https://dev-animaladoption.azurewebsites.net/
 
-    steps:
-      - name: Download the function-tests build artifact
-        uses: actions/download-artifact@v2.0.5
-        with:
-          name: functional-tests
-          path: ./functional-tests/
+  #   steps:
+  #     - name: Download the function-tests build artifact
+  #       uses: actions/download-artifact@v2.0.5
+  #       with:
+  #         name: functional-tests
+  #         path: ./functional-tests/
 
-      - name: Add VSTest.console.exe to the PATH
-        uses: darenm/Setup-VSTest@v1
+  #     - name: Add VSTest.console.exe to the PATH
+  #       uses: darenm/Setup-VSTest@v1
 
-      - name: Run functional tests against the test instance of the TAA web portal
-        run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
+  #     - name: Run functional tests against the test instance of the TAA web portal
+  #       run: vstest.console.exe "functional-tests\AnimalAdoption.Web.Portal.FunctionalTests.dll"
 
-  provision-prod-with-bicep:
-    runs-on: ubuntu-latest
-    needs: functional-tests
+  # provision-prod-with-bicep:
+  #   runs-on: ubuntu-latest
+  #   needs: functional-tests
 
-    steps:
-      - name: Login to Azure using the Production SP credentials
-        uses: Azure/login@v1.1
-        with:
-          creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
+  #   steps:
+  #     - name: Login to Azure using the Production SP credentials
+  #       uses: Azure/login@v1.1
+  #       with:
+  #         creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
 
-      - name: Download the bicep-template artifact
-        uses: actions/download-artifact@v2.0.5
-        with:
-          name: bicep-template
-          path: ./bicep-template/
+  #     - name: Download the bicep-template artifact
+  #       uses: actions/download-artifact@v2.0.5
+  #       with:
+  #         name: bicep-template
+  #         path: ./bicep-template/
 
-      - name: Deploy resources to the prod Resource Group using a Bicep template
-        uses: azure/arm-deploy@v1
-        with:
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          resourceGroupName: prod
-          template: ./bicep-template/deploy.bicep
-          parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-prod-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
-          failOnStdErr: false
-          deploymentMode: incremental
+  #     - name: Deploy resources to the prod Resource Group using a Bicep template
+  #       uses: azure/arm-deploy@v1
+  #       with:
+  #         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #         resourceGroupName: prod
+  #         template: ./bicep-template/deploy.bicep
+  #         parameters: tenantGuid=${{ secrets.AZURE_TENANT_GUID }} appServicePlanName=prod-animaladoption keyVaultName=kv-prod-animaladoption webAppName=prod-animaladoption resourceGroupServicePrincipalManagedApplicationObjectId=${{ secrets.PROD_SP_OBJECT_ID }}
+  #         failOnStdErr: false
+  #         deploymentMode: incremental
 
-  deploy-prod-staging:
-    runs-on: windows-latest
-    needs: [provision-prod-with-bicep]
+  # deploy-prod-staging:
+  #   runs-on: windows-latest
+  #   needs: [provision-prod-with-bicep]
 
-    environment:
-      name: "staging"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+  #   environment:
+  #     name: "staging"
+  #     url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: drop
+  #   steps:
+  #     - name: Download artifact from build job
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: drop
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: "prod-animaladoption"
-          slot-name: "staging"
-          # Get the publish settings by visiting your app (correct slot) in Azure and downloading them
-          publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS_STAGING }}
-          package: .
+  #     - name: Deploy to Azure Web App
+  #       id: deploy-to-webapp
+  #       uses: azure/webapps-deploy@v2
+  #       with:
+  #         app-name: "prod-animaladoption"
+  #         slot-name: "staging"
+  #         # Get the publish settings by visiting your app (correct slot) in Azure and downloading them
+  #         publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS_STAGING }}
+  #         package: .
 
-  deploy-prod-production:
-    runs-on: windows-latest
-    needs: [provision-prod-with-bicep]
+  # deploy-prod-production:
+  #   runs-on: windows-latest
+  #   needs: [provision-prod-with-bicep]
 
-    environment:
-      name: "production"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+  #   environment:
+  #     name: "production"
+  #     url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: drop
+  #   steps:
+  #     - name: Download artifact from build job
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: drop
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: "prod-animaladoption"
-          slot-name: "production"
-          # Get the publish settings by visiting your app (correct slot) in Azure and downloading them
-          publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS }}
-          package: .
+  #     - name: Deploy to Azure Web App
+  #       id: deploy-to-webapp
+  #       uses: azure/webapps-deploy@v2
+  #       with:
+  #         app-name: "prod-animaladoption"
+  #         slot-name: "production"
+  #         # Get the publish settings by visiting your app (correct slot) in Azure and downloading them
+  #         publish-profile: ${{ secrets.PROD_PUBLISH_SETTINGS }}
+  #         package: .
 
-  set-prod-application-settings-via-keyvault:
-    runs-on: windows-latest
-    # needs: deploy-prod-staging
+  # set-prod-application-settings-via-keyvault:
+  #   runs-on: windows-latest
+  #   # needs: deploy-prod-staging
 
-    steps:
-      - name: Login to Azure using the Production SP credentials
-        uses: Azure/login@v1.1
-        with:
-          creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
+  #   steps:
+  #     - name: Login to Azure using the Production SP credentials
+  #       uses: Azure/login@v1.1
+  #       with:
+  #         creds: ${{ secrets.PROD_SP_AZURE_CREDENTIALS }}
 
-      - name: Get GlobalPassword secret from Azure Key vault
-        uses: Azure/get-keyvault-secrets@v1
-        with:
-          keyvault: kv-prod-animaladoption # name of key vault in Azure portal
-          secrets: "GlobalPassword" # comma separated list of secret keys to fetch from key vault
-        id: myGetSecretAction # ID for secrets that you will reference
+  #     - name: Get GlobalPassword secret from Azure Key vault
+  #       uses: Azure/get-keyvault-secrets@v1
+  #       with:
+  #         keyvault: kv-prod-animaladoption # name of key vault in Azure portal
+  #         secrets: "GlobalPassword" # comma separated list of secret keys to fetch from key vault
+  #       id: myGetSecretAction # ID for secrets that you will reference
 
-      # Use GlobalPassword secret from Azure Key Vault to set app settings
-      - name: Set Web App ACR authentication - production slot
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: "prod-animaladoption"
-          app-settings-json: |
-            [
-              {
-                "name": "GlobalPassword",
-                "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
-                "slotSetting": false
-              },
-              {
-                "name": "SimulatedFailureChance",
-                "value": 50,
-                "slotSetting": false
-              }
-            ]
+  #     # Use GlobalPassword secret from Azure Key Vault to set app settings
+  #     - name: Set Web App ACR authentication - production slot
+  #       uses: Azure/appservice-settings@v1
+  #       with:
+  #         app-name: "prod-animaladoption"
+  #         app-settings-json: |
+  #           [
+  #             {
+  #               "name": "GlobalPassword",
+  #               "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
+  #               "slotSetting": false
+  #             },
+  #             {
+  #               "name": "SimulatedFailureChance",
+  #               "value": 50,
+  #               "slotSetting": false
+  #             }
+  #           ]
 
-      - name: Set Web App ACR authentication - staging slot
-        uses: Azure/appservice-settings@v1
-        with:
-          app-name: "prod-animaladoption"
-          # Set the slot - default is production
-          # https://github.com/marketplace/actions/azure-app-service-settings
-          slot-name: "staging"
-          app-settings-json: |
-            [
-              {
-                "name": "GlobalPassword",
-                "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
-                "slotSetting": false
-              },
-              {
-                "name": "SimulatedFailureChance",
-                "value": 50,
-                "slotSetting": false
-              }
-            ]
+  #     - name: Set Web App ACR authentication - staging slot
+  #       uses: Azure/appservice-settings@v1
+  #       with:
+  #         app-name: "prod-animaladoption"
+  #         # Set the slot - default is production
+  #         # https://github.com/marketplace/actions/azure-app-service-settings
+  #         slot-name: "staging"
+  #         app-settings-json: |
+  #           [
+  #             {
+  #               "name": "GlobalPassword",
+  #               "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
+  #               "slotSetting": false
+  #             },
+  #             {
+  #               "name": "SimulatedFailureChance",
+  #               "value": 50,
+  #               "slotSetting": false
+  #             }
+  #           ]
 
   check-alerts:
     runs-on: windows-latest
-    needs: deploy-prod-production
+    # needs: deploy-prod-production
 
     steps:
       - name: Login to Azure using the Production SP credentials
@@ -354,18 +354,19 @@ jobs:
           azPSVersion: "latest"
           errorActionPreference: "stop"
           failOnStandardError: true
-          # inlineScript: |
-          #   az rest -m get --header "Accept=application/json" -u 'https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.AlertsManagement/alerts?api-version=2018-05-05&timeRange=1h' | echo
-          #   $Alerts = az rest -m get --header "Accept=application/json" -u 'https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.AlertsManagement/alerts?api-version=2018-05-05&timeRange=1h' | ConvertFrom-Json
-          #   if ($Alerts.value) { echo "ALERTS=true" >> $GITHUB_ENV }
-          #   if ($Alerts.value) { echo "ALERTS HAS VALUE" }
-          #   if (!$Alerts.value) { echo "ALERTS DOES NOT HAVE VALUE" }
           inlineScript: |
-            Install-Module -Name Az.AlertsManagement -Force -AllowClobber
-            $Alerts = Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
-            if ($Alerts) { echo '::set-output name=ALERTS::true' }
-            if ($Alerts) { echo "ALERTS HAS VALUE" }
-            if (!$Alerts) { echo "ALERTS DOES NOT HAVE VALUE" }
+            az rest -m get --header "Accept=application/json" -u 'https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.AlertsManagement/alerts?api-version=2018-05-05&timeRange=1h' | echo
+            $Alerts = az rest -m get --header "Accept=application/json" -u 'https://management.azure.com/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.AlertsManagement/alerts?api-version=2018-05-05&timeRange=1h' | ConvertFrom-Json
+            if ($Alerts.value) { echo "ALERTS=true" >> $GITHUB_ENV }
+            if ($Alerts.value) { echo '::set-output name=ALERTS::true' }
+            if ($Alerts.value) { echo "ALERTS HAS VALUE" }
+            if (!$Alerts.value) { echo "ALERTS DOES NOT HAVE VALUE" }
+          # inlineScript: |
+          #   Install-Module -Name Az.AlertsManagement -Force -AllowClobber
+          #   $Alerts = Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
+          #   if ($Alerts) { echo '::set-output name=ALERTS::true' }
+          #   if ($Alerts) { echo "ALERTS HAS VALUE" }
+          #   if (!$Alerts) { echo "ALERTS DOES NOT HAVE VALUE" }
 
       - name: switch-slots
         if: ${{ steps.get-alerts.outputs.ALERTS }}
