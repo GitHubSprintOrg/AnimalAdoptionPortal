@@ -358,12 +358,14 @@ jobs:
           #   if ($Alerts.value) { echo "ALERTS HAS VALUE" }
           inlineScript: |
             $Alerts = az rest -m get --header "Accept=application/json" -u 'https://management.azure.com/subscriptions/5be62e45-b5af-4df6-9943-4a8a8a254290/providers/Microsoft.AlertsManagement/alerts?api-version=2018-05-05&timeRange=1h' | ConvertFrom-Json
-            if ($Alerts.value) { echo "ALERTS=$Alerts" >> $GITHUB_ENV }
+            if ($Alerts.value) { echo "ALERTS=true" >> $GITHUB_ENV }
             if ($Alerts.value) { echo "ALERTS HAS VALUE" }
             if (!$Alerts.value) { echo "ALERTS DOES NOT HAVE VALUE" }
           # inlineScript: |
           #   Get-AzAlert -TargetResourceGroup prod -MonitorCondition Fired -TimeRange 1h
           azPSVersion: "latest"
+          errorActionPreference: "stop"
+          failOnStandardError: true
 
       - name: switch-slots
         if: ${{ env.ALERTS }}
