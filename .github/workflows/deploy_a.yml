@@ -306,12 +306,12 @@ jobs:
               {
                 "name": "GlobalPassword",
                 "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
-                "slotSetting": "production"
+                "slotSetting": false
               },
               {
                 "name": "SimulatedFailureChance",
                 "value": 50,
-                "slotSetting": "production"
+                "slotSetting": false
               }
             ]
 
@@ -324,11 +324,13 @@ jobs:
               {
                 "name": "GlobalPassword",
                 "value": "${{ steps.myGetSecretAction.outputs.GlobalPassword }}",
-                "slotSetting": "staging"
+                "slotSetting": true,
+                "slotName": "staging"
               },
               {
                 "name": "SimulatedFailureChance",
                 "value": 50,
-                "slotSetting": "staging"
+                "slotSetting": true,
+                "slotName": "staging"
               }
             ]
