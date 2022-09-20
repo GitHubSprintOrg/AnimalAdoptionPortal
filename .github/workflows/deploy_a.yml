@@ -362,7 +362,8 @@ jobs:
   switch-slots:
     runs-on: windows-latest
     needs: check-alerts
-    if: ${{ env.ALERTS }}
+    if: true
+    # if: ${{ env.ALERTS }}
 
     steps:
       - name: Login to Azure using the Production SP credentials
