@@ -370,7 +370,6 @@ jobs:
             if ($Alerts) { echo '::set-output name=ALERTS::true' }
             if ($Alerts) { echo "ALERTS HAS VALUE" }
             if (!$Alerts) { echo "ALERTS DOES NOT HAVE VALUE / IS NULL" }
-            echo ${{ env.ALERTS }}
 
       - name: switch-slots
         if: ${{ steps.get-alerts.outputs.ALERTS }}
